@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scroll Camera Views with VHS Effect</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #0b0b0b;
+      color: #e0e0e0;
+      font-family: 'Helvetica Neue', sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      text-align: left;
+      background-color: rgba(0,0,0,0);
+    }
+
+    .container {
+      max-width: 700px;
+      padding: 2rem;
+      /* margin-top: 4rem; */
+      background-color: rgba(0,0,0,0.5);
+      backdrop-filter: blur(3px); /* effet de flou derrière le conteneur */
+      -webkit-backdrop-filter: blur(3px);
+    }
+
+    h1 {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+      color: #fff;
+      /* text-shadow:
+        0 0 5px #ff00cc,
+        0 0 10px #ff00cc,
+        0 0 20px #ff00cc,
+        0 0 40px #ff00cc66; */
+        text-shadow:
+        -2px 2px 5px #bbfffd66,
+        2px -1px 10px #550092,
+        -2px 1px 20px #00949b,
+        2px 2px 40px #0062ffc1;
+    }
+
+    h2 {
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+    }
+    h3 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    p {
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    a {
+      color: #66f;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+    body, html {
+      margin: 0;
+      /* height: 550vh; */
+      height: auto;
+      overflow-x: hidden;
+    }
+    .full-width-image {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+    
+  </style>
+</head>
+<body>
+  <script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./three/build/three.module.js",
+        "three/examples/jsm/loaders/OBJLoader.js": "./three/examples/jsm/loaders/OBJLoader.js",
+        "three/examples/jsm/postprocessing/EffectComposer.js": "./three/examples/jsm/postprocessing/EffectComposer.js",
+        "three/examples/jsm/postprocessing/RenderPass.js": "./three/examples/jsm/postprocessing/RenderPass.js",
+        "three/examples/jsm/postprocessing/ShaderPass.js": "./three/examples/jsm/postprocessing/ShaderPass.js",
+        "three/examples/jsm/postprocessing/GlitchPass.js": "./three/examples/jsm/postprocessing/GlitchPass.js"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+    import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+    import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+    import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass.js';
+
+    let container;
+    let camera, scene, renderer, composer;
+    const group = new THREE.Group();
+
+    const cameraPivot = new THREE.Object3D();
+
+    let cameraTarget = new THREE.Vector3();
+    let cameraPositionTarget = new THREE.Vector3();
+    let cameraRotationTargetY = 0;
+    let cameraRotationTargetX = 0;
+
+    const views = [
+      { position: new THREE.Vector3(0, 0, 200), lookAt: new THREE.Vector3(0, 0, 0), rotationY: 0, rotationX: 0 },
+      { position: new THREE.Vector3(0, 0, 300), lookAt: new THREE.Vector3(0, 0, 0), rotationY: Math.PI / 8, rotationX: Math.PI / 16 },
+      { position: new THREE.Vector3(200, -700, 1600), lookAt: new THREE.Vector3(200, -700, 0), rotationY: Math.PI / 3, rotationX: Math.PI / 6 },
+      { position: new THREE.Vector3(0, 0, 200), lookAt: new THREE.Vector3(0, 0, 0), rotationY: Math.PI / 6, rotationX: Math.PI / 8 }
+    ];
+
+    let objectsLoaded = 0;
+    const totalObjects = 3;
+
+    init();
+    animate();
+
+    function init() {
+      container = document.createElement('div');
+      document.body.appendChild(container);
+
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 20000);
+      camera.position.copy(views[0].position);
+      camera.lookAt(views[0].lookAt);
+
+      scene = new THREE.Scene();
+      cameraPivot.add(camera);
+      scene.add(cameraPivot);
+
+      const ambientLight = new THREE.AmbientLight(0xcccccc, 0.4);
+      scene.add(ambientLight);
+      const pointLight = new THREE.PointLight(0xffffff, 0.8);
+      camera.add(pointLight);
+
+      scene.add(group);
+
+      const material = new THREE.MeshNormalMaterial();
+
+      function finalizePositioning() {
+        if (++objectsLoaded === totalObjects) {
+          const box = new THREE.Box3().setFromObject(group);
+          const center = new THREE.Vector3();
+          box.getCenter(center);
+          const size = new THREE.Vector3();
+          box.getSize(size);
+          group.position.sub(center);
+          group.position.y -= (size.y - (size.y / 6)) / 2;
+          group.position.x -= (size.x - (size.x / 20)) / 3;
+        }
+      }
+
+      function loadModel(path, position, scale, rotation) {
+        const loader = new OBJLoader();
+        loader.load(path, function (obj) {
+          obj.traverse(child => {
+            if (child instanceof THREE.Mesh) {
+              child.material = material;
+            }
+          });
+          obj.position.copy(position);
+          obj.scale.copy(scale);
+          obj.rotation.y = rotation;
+          group.add(obj);
+          finalizePositioning();
+        });
+      }
+
+      loadModel('./models/fix skeleton/source/SubTool-0-3517926.OBJ', new THREE.Vector3(-190, -455, 0), new THREE.Vector3(160, 160, 160), 1);
+      loadModel('./models/Headphones.obj', new THREE.Vector3(-265, 15, 180), new THREE.Vector3(16, 16, 16), 1);
+      loadModel('./models/vr.obj', new THREE.Vector3(-130, 40, 38), new THREE.Vector3(38, 38, 38), -2);
+
+      renderer = new THREE.WebGLRenderer();
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      container.appendChild(renderer.domElement);
+
+      // Post-processing VHS effect
+      composer = new EffectComposer(renderer);
+      const renderPass = new RenderPass(scene, camera);
+      composer.addPass(renderPass);
+
+      const glitchPass = new GlitchPass();
+      glitchPass.goWild = false;
+      composer.addPass(glitchPass);
+
+      // Custom shader for VHS distortion
+      const vhsShader = {
+        uniforms: {
+          tDiffuse: { value: null },
+          time: { value: 0.0 }
+        },
+        vertexShader: `
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform sampler2D tDiffuse;
+          uniform float time;
+          varying vec2 vUv;
+
+          void main() {
+            float strength = 0.005;
+            float yOffset = sin(vUv.y * 3.0 + time * 0.5) * strength;
+            vec2 uv = vUv + vec2(yOffset, 0.06);
+            vec3 color = texture2D(tDiffuse, uv).rgb;
+
+            float noise = fract(sin(dot(uv ,vec2(12.9898,78.233))) * 43758.5453);
+            color.rgb += noise * 0.07;
+
+            gl_FragColor = vec4(color, 1.0);
+          }
+        `
+      };
+
+      const vhsPass = new ShaderPass(vhsShader);
+      composer.addPass(vhsPass);
+
+      window.addEventListener('resize', onWindowResize);
+      window.addEventListener('scroll', onScroll);
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function onScroll() {
+      const scroll = window.scrollY;
+      const scrollHeight = document.body.scrollHeight - window.innerHeight;
+      const percent = scroll / scrollHeight;
+
+      const index = Math.min(Math.floor(percent * views.length), views.length - 1);
+      const nextIndex = Math.min(index + 1, views.length - 1);
+      const localPercent = (percent * views.length) % 1;
+
+      cameraPositionTarget = new THREE.Vector3().lerpVectors(
+        views[index].position,
+        views[nextIndex].position,
+        localPercent
+      );
+
+      cameraTarget = new THREE.Vector3().lerpVectors(
+        views[index].lookAt,
+        views[nextIndex].lookAt,
+        localPercent
+      );
+
+      cameraRotationTargetY = THREE.MathUtils.lerp(
+        views[index].rotationY,
+        views[nextIndex].rotationY,
+        localPercent
+      );
+
+      cameraRotationTargetX = THREE.MathUtils.lerp(
+        views[index].rotationX,
+        views[nextIndex].rotationX,
+        localPercent
+      );
+    }
+
+    function animate(time) {
+      requestAnimationFrame(animate);
+      render(time);
+    }
+
+    function render(time) {
+      camera.position.lerp(cameraPositionTarget, 0.05);
+      camera.lookAt(cameraTarget);
+      cameraPivot.rotation.y += (cameraRotationTargetY - cameraPivot.rotation.y) * 0.05;
+      cameraPivot.rotation.x += (cameraRotationTargetX - cameraPivot.rotation.x) * 0.05;
+
+      composer.passes[2].uniforms.time.value = time * 0.001; // VHS shader time
+      composer.render();
+    }
+  </script>
+  <div class="container">
+    <h1>Diane WDF</h1>
+    <h2>Live modular techno artist / sound explorer since 1999</h2>
+    <!-- <video autoplay loop muted playsinline id="background-video" style="
+
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 2;
+
+  object-fit: cover;
+
+  object-position: 0% 60%;
+  ">
+  <source src="./images/fp03.MP4" type="video/mp4" >
+  Votre navigateur ne prend pas en charge la lecture de vidéo.
+</video> -->
+
+    <img src="./images/cit01.JPG" alt="Diane WDF" class="full-width-image" style="opacity: 0.75; mix-blend-mode: lighten;"/>
+    <p>
+      Active depuis la fin des années 90, <strong>Diane WDF</strong> est une productrice et performeuse techno basée en France, connue pour ses lives machines intenses et organiques, aujourd’hui centrés autour d’un système Eurorack modulaire qu’elle maîtrise comme une véritable extension de son corps.
+    </p>
+    <h2>ABOUT</h2>
+    <img src="./images/fp10.JPG" alt="Diane WDF" class="full-width-image" style="opacity: 0.75; mix-blend-mode: lighten;"/>
+    <p>
+      Autrefois connue sous le nom de <strong>Krumlek</strong>, elle fait ses premières armes dans l’electro hybride, entre les textures de <strong>Ninja Tune</strong> et l’avant-garde de <strong>Warp Records</strong>. Elle enchaîne ensuite les projets et alias — <strong>Krum Fresh</strong>, <strong>Thi Hüüt</strong> ou encore <strong>Kashtone</strong> — chacun reflétant une facette différente de sa palette sonore, de l’IDM à l’electro-funk en passant par la techno expérimentale. Elle a été signée sur le label Infrabass, et partagée l’affiche avec des collectifs iconiques comme les <strong>Heretik</strong>.
+    </p>
+    <p>
+      Également membre de formations live comme <strong>Roller79</strong> (new wave), <strong>Martine on the Beach</strong> (electro rock), ou encore <strong>Buddy Buddah</strong> (chill funk), Diane tisse depuis toujours des ponts entre les scènes et les genres, avec une sensibilité à la fois brute et mélodique.
+    </p>
+    <p>
+      Aujourd’hui, en tant que <strong>Diane WDF</strong>, elle revient à l’essentiel : des sets techno hypnotiques, vivants, et résolument analogiques. Elle développe aussi ses propres VST pour sculpter son son — outils qu’elle prépare à partager via une entreprise dédiée à venir.
+    </p>
+    <p>
+      Mixes, lives, machines, VST : <strong>Diane WDF</strong> incarne une techno artisanale, viscérale, et sans compromis.
+    </p>
+    <h2>NEWS</h2>
+    <h3>Cargo-8</h3>
+    <p>Une sortie prévue pour le 23 Mai, <strong>Cargo-8</strong>, un morceau tout droit sortit de l'espace, avec pour la voix de D.Context sur le label <strong>REMORE MUSICA</strong></p>
+    <!-- <img src="./images/stu04.jpg" alt="Diane WDF" class="full-width-image" style="opacity: 0.75; mix-blend-mode: lighten;"/> -->
+    <h2>STAGES</h2>
+    <p>23 MAI - Cargo-8 Release en B2B avec Nascimento à l'>Illu</p>
+    <p>24 Mai - OPEN AIR à Blois (Live)</p>
+    <p>11 Juin - Aucard de Tours 2025 (Live)</p>
+    <p>21 Juin - Bar la Ptite Maiz à Tours</p>
+    <p>26 Juin - Studio 56 à Paris</p>
+    <p>19 Septembre - Chez Dupont </p>
+    <h2>LINKS</h2>
+    <p>
+      → <a href="https://soundcloud.com/ton-profil" target="_blank">Écouter sur SoundCloud</a><br />
+      → <a href="mailto:contact@dianewdf.com">Contact : contact@dianewdf.com</a>
+    </p>
+    <img src="./images/fp02.JPG" alt="Diane WDF" class="full-width-image" style="opacity: 0.75; mix-blend-mode: lighten;"/>
+
+
+  </div>
+</body>
+</html>

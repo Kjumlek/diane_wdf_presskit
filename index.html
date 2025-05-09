@@ -83,6 +83,86 @@
       left: 0;
       z-index: -1;
     }
+
+    /*Schedule*/
+    .schedule-container {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .schedule-button {
+      background-color: transparent;
+      border: none;
+      color: #e0e0e0;
+      font-size: 1.2em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+
+    .arrow {
+      margin-left: 5px;
+      transition: transform 0.3s;
+    }
+
+    .arrow.open {
+      transform: rotate(180deg);
+    }
+
+    .scrolling-wrapper {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      overflow: hidden;
+      gap: 10px;
+    }
+
+    .scrolling-text {
+      flex: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      position: relative;
+      min-width: 0;
+      width: 0;
+    }
+
+    .scrolling-inner {
+      display: inline-block;
+      white-space: nowrap;
+      animation: scrollText 20s linear infinite;
+    }
+
+    @keyframes scrollText {
+      0% {
+        transform: translateX(0%);
+      }
+      100% {
+        transform: translateX(-50%);
+      }
+    }
+
+    .schedule-table {
+      display: none;
+      margin-top: 10px;
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    .schedule-table th,
+    .schedule-table td {
+      border: 1px solid #e0e0e0;
+      padding: 8px;
+      text-align: left;
+    }
+
+    .schedule-table th {
+      background-color: #1a1a1a;
+    }
+
+    .scrolling-text.hidden {
+      display: none;
+    }
     
   </style>
 </head>
@@ -295,23 +375,49 @@
       composer.render();
     }
   </script>
+
   <div class="container">
     <h1>Diane WDF</h1>
+
+    <div class="schedule-container">
+
+      <div class="scrolling-wrapper">
+        <button class="schedule-button" onclick="toggleSchedule()">
+          Schedule <span class="arrow" id="arrow">▼</span>
+        </button>
+        <div class="scrolling-wrapper">
+          <div class="scrolling-text" id="scrollingText">
+            <div class="scrolling-inner">
+              23/05/25 - Tours - Illu - Cargo-8 Release | 
+              24/05/25 - Blois - Festival Open Air | 
+              11/06/25 - Tours - Aucard de Tours 2025 | 
+              21/06/25 - Tours - Bar la P'tite Maiz | 
+              21/06/25 - Paris - Studio 56 | 
+              19/09/25 - Tours - Chez Dupont | 
+            </div>
+          </div>
+        </div>
+      </div>
+      <table class="schedule-table" id="scheduleTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Lieu</th>
+            <th>Événement</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>23/05/25</td><td>Tours</td><td>Cargo-8 Release B2B Nascimento (L'Illu)</td></tr>
+          <tr><td>24/05/25</td><td>Blois</td><td>Festival Open Air (live)</td></tr>
+          <tr><td>11/06/25</td><td>Tours</td><td>Aucard de Tours 2025 (live)</td></tr>
+          <tr><td>21/06/25</td><td>Tours</td><td>Bar la P'tite Maiz</td></tr>
+          <tr><td>21/06/25</td><td>Paris</td><td>Studio 56</td></tr>
+          <tr><td>19/09/25</td><td>Tours</td><td>Chez Dupont (live)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
     <h2>Live modular techno artist / sound explorer since 1999</h2>
-    <!-- <video autoplay loop muted playsinline id="background-video" style="
-
-  width: 100%;
-  height: auto;
-  aspect-ratio: 4 / 2;
-
-  object-fit: cover;
-
-  object-position: 0% 60%;
-  ">
-  <source src="./images/fp03.MP4" type="video/mp4" >
-  Votre navigateur ne prend pas en charge la lecture de vidéo.
-</video> -->
-
     <img src="./images/cit01.JPG" alt="Diane WDF" class="full-width-image" style="opacity: 0.75; mix-blend-mode: lighten;"/>
     <p>
       Active depuis la fin des années 90, <strong>Diane WDF</strong> est une productrice et performeuse techno basée en France, connue pour ses lives machines intenses et organiques, aujourd’hui centrés autour d’un système Eurorack modulaire qu’elle maîtrise comme une véritable extension de son corps.
@@ -334,22 +440,35 @@
     <h3>Cargo-8</h3>
     <p>Une sortie prévue pour le 23 Mai, <strong>Cargo-8</strong>, un morceau tout droit sortit de l'espace, avec la voix de <strong>D.Context</strong> sur le label <strong>REMORE MUSICA</strong></p>
     <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/2074395008%3Fsecret_token%3Ds-A1pK4jF27Am&color=%236100ff&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"></iframe>
-    <h2>STAGES</h2>
-    <p>23 MAI - Cargo-8 Release en B2B avec Nascimento à l'>Illu</p>
-    <p>24 Mai - OPEN AIR à Blois (Live)</p>
-    <p>11 Juin - Aucard de Tours 2025 (Live)</p>
-    <p>21 Juin - Bar la Ptite Maiz à Tours</p>
-    <p>26 Juin - Studio 56 à Paris</p>
-    <p>19 Septembre - Chez Dupont </p>
+
     <h2>LINKS</h2>
     <p>
       <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1895227815&color=%236100ff&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"></iframe>
-      → <a href="https://soundcloud.com/ton-profil" target="_blank">Écouter sur SoundCloud</a><br />
+      → <a href="https://soundcloud.com/dianewdf" target="_blank">Écouter sur SoundCloud</a><br />
       → <a href="mailto:contact@dianewdf.com">Contact : contact@dianewdf.com</a>
     </p>
     <img src="./images/fp02.JPG" alt="Diane WDF" class="full-width-image" style="opacity: 0.75; mix-blend-mode: lighten;"/>
 
 
   </div>
+
+  <script>
+  function toggleSchedule() {
+    const table = document.getElementById('scheduleTable');
+    const arrow = document.getElementById('arrow');
+    const scroll = document.getElementById('scrollingText');
+
+    if (table.style.display === 'none' || table.style.display === '') {
+      table.style.display = 'table';
+      arrow.classList.add('open');
+      scroll.classList.add('hidden');
+    } else {
+      table.style.display = 'none';
+      arrow.classList.remove('open');
+      scroll.classList.remove('hidden');
+    }
+  }
+
+</script>
 </body>
 </html>

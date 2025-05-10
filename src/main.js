@@ -50,68 +50,44 @@ import * as THREE from 'three';
 
       const material = new THREE.MeshNormalMaterial();
 
-function finalizePositioning() {
-  if (objectsLoaded === totalObjects) {
-    const box = new THREE.Box3().setFromObject(group);
-    const center = new THREE.Vector3();
-    box.getCenter(center);
-    const size = new THREE.Vector3();
-    box.getSize(size);
-    group.position.sub(center); // Recentre le groupe autour de l'origine
-    group.position.y -= (size.y - (size.y / 6)) / 2;
-    group.position.x -= (size.x - (size.x / 20)) / 3;
-  }
-}
-
-
-// Créer le manager pour suivre l'avancement du chargement
-const manager = new THREE.LoadingManager();
-const objLoader = new OBJLoader(manager);
-
-// Initialiser le nombre total d'objets à charger
-let objectsLoaded = 0;
-const totalObjects = 3; // Remplace par le nombre réel de tes objets 3D
-
-// Élément pour afficher le pourcentage de chargement
-const loaderText = document.getElementById('loaderText'); // Remplace avec l'ID réel de ton texte de chargement
-const loaderElement = document.getElementById('loader'); // Remplace avec l'ID réel de ton loader
-
-// Fonction pour charger un modèle
-function loadModel(path, position, scale, rotation) {
-  objLoader.load(path, (obj) => {
-    // Une fois que le modèle est chargé
-    obj.traverse(child => {
-      if (child instanceof THREE.Mesh) {
-        child.material = material;
+      function finalizePositioning() {
+        if (objectsLoaded === totalObjects) {
+          const box = new THREE.Box3().setFromObject(group);
+          const center = new THREE.Vector3();
+          box.getCenter(center);
+          const size = new THREE.Vector3();
+          box.getSize(size);
+          group.position.sub(center); // Recentre le groupe autour de l'origine
+          group.position.y -= (size.y - (size.y / 6)) / 2;
+          group.position.x -= (size.x - (size.x / 20)) / 3;
+        }
       }
-    });
-    obj.position.copy(position);
-    obj.scale.copy(scale);
-    obj.rotation.y = rotation;
-    group.add(obj);
-    
-    // Incrémenter le compteur d'objets chargés
-    objectsLoaded++;
-    if (objectsLoaded === totalObjects) {
-      hideLoader(); 
-      finalizePositioning();// Masquer le loader une fois tous les objets chargés
-    }
-  }, 
-  // Callback pour le chargement partiel
-  (xhr) => {
-    const percent = (xhr.loaded / xhr.total) * 100;
-    loaderText.textContent = `Chargement: ${Math.round(percent)}%`; // Mise à jour du texte de chargement
-  }, 
-  // Callback en cas d'erreur
-  (error) => {
-    console.error('Erreur de chargement :', error);
-  });
-}
 
-// Fonction pour cacher le loader
-function hideLoader() {
-  loaderElement.style.display = 'none'; // Cacher le loader
-}
+
+      const objLoader = new OBJLoader();
+
+      let objectsLoaded = 0;
+      const totalObjects = 3;
+
+      function loadModel(path, position, scale, rotation) {
+        objLoader.load(path, (obj) => {
+
+          obj.traverse(child => {
+            if (child instanceof THREE.Mesh) {
+              child.material = material;
+            }
+          });
+          obj.position.copy(position);
+          obj.scale.copy(scale);
+          obj.rotation.y = rotation;
+          group.add(obj);
+          
+          objectsLoaded++;
+          if (objectsLoaded === totalObjects) {
+            finalizePositioning();
+          }
+        },);
+      }
 
       loadModel('./models/fix skeleton/source/SubTool-0-3517926.OBJ', new THREE.Vector3(-190, -455, 0), new THREE.Vector3(160, 160, 160), 1);
       loadModel('./models/Headphones.obj', new THREE.Vector3(-265, 15, 180), new THREE.Vector3(16, 16, 16), 1);

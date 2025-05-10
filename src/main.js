@@ -89,9 +89,9 @@ import * as THREE from 'three';
         },);
       }
 
-      loadModel('./models/fix skeleton/source/SubTool-0-3517926.OBJ', new THREE.Vector3(-190, -455, 0), new THREE.Vector3(160, 160, 160), 1);
-      loadModel('./models/Headphones.obj', new THREE.Vector3(-265, 15, 180), new THREE.Vector3(16, 16, 16), 1);
-      loadModel('./models/vr.obj', new THREE.Vector3(-130, 40, 38), new THREE.Vector3(38, 38, 38), -2);
+      loadModel('./models/fix skeleton/source/skeleton.OBJ', new THREE.Vector3(-190, -455, 0), new THREE.Vector3(160, 160, 160), 1);
+      loadModel('./models/Headphones2.obj', new THREE.Vector3(-265, 15, 180), new THREE.Vector3(16, 16, 16), 1);
+      loadModel('./models/glasses.obj', new THREE.Vector3(-130, 40, 38), new THREE.Vector3(38, 38, 38), -2);
 
             
 

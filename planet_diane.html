@@ -85,14 +85,13 @@
 
 
   <script>
-  const collapsible = document.querySelector('.collapsible');
-  const content = document.querySelector('.content');
-  const arrow = collapsible.querySelector('.arrow');
-
-  collapsible.addEventListener('click', () => {
-    content.classList.toggle('open');
-    collapsible.classList.toggle('active');
-  });
-</script>
+    document.querySelectorAll('.collapsible').forEach(header => {
+      header.addEventListener('click', () => {
+        const content = header.nextElementSibling.nextElementSibling;
+        content.classList.toggle('open');
+        header.classList.toggle('active');
+      });
+    });
+  </script>
 </body>
 </html>

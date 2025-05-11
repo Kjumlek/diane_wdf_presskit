@@ -129,10 +129,10 @@
 
     @keyframes scrollText {
       0% {
-        transform: translateX(0%);
+        transform: translateX(100%);
       }
       100% {
-        transform: translateX(-50%);
+        transform: translateX(-100%);
       }
     }
 
@@ -220,3 +220,89 @@
       font-weight: bold;
       text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
     }
+
+
+
+
+    */Planet Diane*/
+
+
+#planet-container {
+  position: relative;
+  width: 0;  /* Largeur du container du canvas (ajuste selon ce que tu préfères) */
+  height: 300px; /* Hauteur du container du canvas (ajuste aussi selon ce que tu préfères) */
+  /* overflow: hidden; */
+  margin: 0 auto;  /* Pour centrer le canvas horizontalement */
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  text-decoration: none;
+  color: #e0e0e0;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+
+.back-button .arrow {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.back-button:hover {
+color: #ffffff;
+  text-decoration: none;
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  text-decoration: none;
+  color: #e0e0e0;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+
+.back-button .arrow {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.back-button:hover {
+color: #ffffff;
+  text-decoration: none;
+}
+
+.collapsible {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    user-select: none;
+    margin-bottom: -0.8rem;
+  }
+
+  .arrow-planet {
+    transition: transform 0.3s ease;
+    display: inline-block;
+  }
+
+  .active .arrow-planet {
+    transform: rotate(90deg);
+  }
+
+  .content {
+    display: none;
+    padding-left: 1em;
+    margin-bottom: 1em;
+  }
+
+  .content.open {
+    display: block;
+  }
